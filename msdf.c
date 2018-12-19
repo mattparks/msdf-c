@@ -627,9 +627,6 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
       contour_count++;
   }
 
-  printf("[TEXT] Number of contours for '%c': %i\n", c, contour_count);
-  printf("[TEXT] Number of verts for '%c': %i\n", c, num_verts);
-
   if (contour_count == 0) {
     free(bitmap);
     return NULL;
@@ -732,10 +729,6 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         }
       } 
     }
-
-    printf("Number of edges for contour %i: %zu\n", i, contour_data[i].edge_count);
-    printf("COUNT %zu\n", count);
-    printf("Start: %zu End: %zu\n", contours[i].start, contours[i].end);
   }
 
   // calculate edge-colors
@@ -887,26 +880,30 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
   multi_distance_t *contour_sd;
   contour_sd = malloc(sizeof(multi_distance_t) * contour_count);
 
+  // Funit to pixel scale
   float scale = stbtt_ScaleForMappingEmToPixels(font, h);
 
+  // get left offset and advance
   int left_bearing, advance;
-  stbtt_GetCodepointHMetrics(font, stbtt_FindGlyphIndex(font,c), &advance, &left_bearing);
+  stbtt_GetGlyphHMetrics(font, stbtt_FindGlyphIndex(font,c), &advance, &left_bearing);
   left_bearing *= scale;
 
-  int ascent, descent;
-  stbtt_GetFontVMetrics(font, &ascent, &descent, 0);
-  int baseline = (int)(ascent*scale);
-  printf("BASELINE %i %i\n", baseline, left_bearing);
+  // calculate baseline
+  int ascent;
+  stbtt_GetFontVMetrics(font, &ascent, 0, 0);
+  int baseline = (int)(ascent*scale)-h;
 
+  // get glyph bounding box (scaled later)
   int ix0, iy0, ix1, iy1;
   stbtt_GetGlyphBox(font, stbtt_FindGlyphIndex(font,c), &ix0, &iy0, &ix1, &iy1);
 
-  int translate_x = (w/2)-((ix1 - ix0)*scale)/2;
-  int translate_y = (h/2)-((iy1 - iy0)*scale)/2;
+  // calculate offset for centering glyph on bitmap
+  int translate_x = (w/2)-((ix1 - ix0)*scale)/2-left_bearing;
+  int translate_y = (h/2)-((iy1 - iy0)*scale)/2-iy0*scale;
   scale *= 64.0;
 
   for (int y=0; y<h; ++y) {
-    int row = iy0 > iy1 ? y : h-y-1; // broken?
+    int row = iy0 > iy1 ? y : h-y-1;
     for (int x=0; x<w; ++x) {
       vec2 p = {(x+.5-translate_x)/scale, (y+.5-translate_y)/scale};
 

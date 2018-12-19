@@ -74,7 +74,9 @@ void main(int argc, char **argv)
   int size = 128;
   float *msdf = ex_msdf_glyph(&font, c, size, size);
   uint8_t *bitmap = malloc(3*size*size);
+  uint8_t *bitmap_sdf = malloc(3*size*size);
   memset(bitmap, 0, 3*size*size);
+  memset(bitmap_sdf, 0, 3*size*size);
   for (int y=0; y<size; y++) {
     for (int x=0; x<size; x++) {
       size_t index = 3*((y*size)+x);
@@ -84,19 +86,27 @@ void main(int argc, char **argv)
       float a = MAX(0.0, MIN(v + 0.5, 1.0));
       a = sqrt(1.0 * 1.0 * (1.0 - a) + 0.0 * 0.0 * a);
 
-      bitmap[index]   = 255*a;
+      bitmap[index+0] = 255*a;
       bitmap[index+1] = 255*a;
       bitmap[index+2] = 255*a;
 
-      // uncomment for MSDF msdf
-      // bitmap[index]   = (uint8_t)(255*(msdf[index]+size)/size);
-      // bitmap[index+1] = (uint8_t)(255*(msdf[index+1]+size)/size);
-      // bitmap[index+2] = (uint8_t)(255*(msdf[index+2]+size)/size);
+      bitmap_sdf[index+0] = (uint8_t)(255*(msdf[index+0]+size)/size);
+      bitmap_sdf[index+1] = (uint8_t)(255*(msdf[index+1]+size)/size);
+      bitmap_sdf[index+2] = (uint8_t)(255*(msdf[index+2]+size)/size);
     }
   }
 
+  // uncomment to draw line down center of png
+  /*for (int y=0; y<size; y++) {
+    int index = 3*((y*size)+size/2);
+    bitmap[index+0] = 0;
+    bitmap[index+1] = 0;
+    bitmap[index+2] = 0;
+  }*/
+
   // debug output
-  stbi_write_png("msdf.png", size, size, 3, bitmap, size*3);
+  stbi_write_png("glyph.png", size, size, 3, bitmap, size*3);
+  stbi_write_png("msdf.png", size, size, 3, bitmap_sdf, size*3);
 
   free(data);
   free(msdf);
