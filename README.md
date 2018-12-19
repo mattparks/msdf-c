@@ -12,7 +12,7 @@ Current issues:
 
 * ~~Glyph alignment seems off~~ [X]
 
-* Lack of multi-byte character support
+* ~~Lack of multi-byte character support~~ [X]
 
 * Error correction appears to be wrong (pixel clash)
 
