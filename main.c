@@ -57,10 +57,10 @@ uint8_t* io_read_file(const char *path, const char *mode)
 
 void main(int argc, char **argv)
 {
-  char c = argv[1][0];
+  char *c = argv[1];
 
   // load the ttf data
-  uint8_t *data = io_read_file("font/OpenSans-Regular.ttf", "rb");
+  uint8_t *data = io_read_file("font/NotoSans-Regular.ttf", "rb");
   if (!data) {
     printf("Failed loading font.\n");
     return;
@@ -70,9 +70,9 @@ void main(int argc, char **argv)
   stbtt_fontinfo font;
   stbtt_InitFont(&font, (const uint8_t*)data, stbtt_GetFontOffsetForIndex(data,0));
 
-  // generate a msdf bitmap
+  // generate a msdf bitmap ỳ 7923
   int size = 128;
-  float *msdf = ex_msdf_glyph(&font, c, size, size);
+  float *msdf = ex_msdf_glyph(&font, ex_utf8(c), size, size);
   uint8_t *bitmap = malloc(3*size*size);
   uint8_t *bitmap_sdf = malloc(3*size*size);
   memset(bitmap, 0, 3*size*size);

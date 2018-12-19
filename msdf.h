@@ -117,6 +117,35 @@ static inline void vec2_sub(vec2 r, vec2 const a, vec2 const b)
   Generates a bitmap from the specified character (c)
   Bitmap is a 3-channel float array (3*w*h)
  */
-float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h);
+float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h);
+
+static inline uint32_t ex_utf8(const char *c) {
+  uint32_t val = 0;
+
+  if ((c[0] & 0xF8) == 0xF0) {
+    // 4 byte
+    val |= (c[3] & 0x3F);
+    val |= (c[2] & 0x3F) << 6;
+    val |= (c[1] & 0x3F) << 12;
+    val |= (c[0] & 0x07) << 18;
+  }
+  else if ((c[0] & 0xF0) == 0xE0) {
+    // 3 byte
+    val |= (c[2] & 0x3F);
+    val |= (c[1] & 0x3F) << 6;
+    val |= (c[0] & 0x0F) << 12;
+  }
+  else if ((c[0] & 0xE0) == 0xC0) {
+    // 2 byte
+    val |= (c[1] & 0x3F);
+    val |= (c[0] & 0x1F) << 6;
+  }
+  else {
+    // 1 byte
+    val = c[0];
+  }
+
+  return val;
+}
 
 #endif // EX_MSDF_H

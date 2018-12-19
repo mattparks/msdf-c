@@ -612,7 +612,7 @@ double shoelace(const vec2 a, const vec2 b)
   return (b[0]-a[0])*(a[1]+b[1]);
 }
 
-float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
+float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h)
 {
   float *bitmap = malloc(sizeof(float)*3*w*h);
   memset(bitmap, 0, sizeof(float)*3*w*h);
@@ -881,7 +881,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
   contour_sd = malloc(sizeof(multi_distance_t) * contour_count);
 
   // Funit to pixel scale
-  float scale = stbtt_ScaleForMappingEmToPixels(font, h);
+  float scale = stbtt_ScaleForPixelHeight(font, h);
 
   // get left offset and advance
   int left_bearing, advance;
