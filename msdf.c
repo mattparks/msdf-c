@@ -1038,6 +1038,8 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h)
   free(contour_data);
   free(contour_sd);
   free(contours);
+  free(windings);
+  free(verts);
 
   // msdf error correction
   // entirely broken, I think.

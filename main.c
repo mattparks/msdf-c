@@ -116,5 +116,6 @@ void main(int argc, char **argv)
   free(data);
   free(msdf);
   free(bitmap);
+  free(bitmap_sdf);
   printf("Done generating msdf glyph.\n");
 }
