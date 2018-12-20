@@ -41,6 +41,13 @@ typedef float vec2[2];
 typedef float vec3[3];
 
 typedef struct {
+  int left_bearing;
+  int advance;
+  int ix0, ix1;
+  int iy0, iy1;
+} ex_metrics_t;
+
+typedef struct {
   double dist;
   double d;
 } signed_distance_t;
@@ -121,7 +128,7 @@ static inline void vec2_sub(vec2 r, vec2 const a, vec2 const b)
   Generates a bitmap from the specified character (c)
   Bitmap is a 3-channel float array (3*w*h)
  */
-float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h);
+float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics);
 
 static inline uint32_t ex_utf8(const char *c) {
   uint32_t val = 0;

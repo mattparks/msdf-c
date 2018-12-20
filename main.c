@@ -73,9 +73,15 @@ void main(int argc, char **argv)
   stbtt_fontinfo font;
   stbtt_InitFont(&font, (const uint8_t*)data, stbtt_GetFontOffsetForIndex(data,0));
 
-  // generate a msdf bitmap ỳ 7923
+  // get baseline metrics
+  int ascent, descent;
+  stbtt_GetFontVMetrics(&font, &ascent, &descent, 0);
+
+  // generate a msdf bitmap
+  // ideally you would do this in your shader
   int size = 128;
-  float *msdf = ex_msdf_glyph(&font, ex_utf8(c), size, size);
+  ex_metrics_t metrics;
+  float *msdf = ex_msdf_glyph(&font, ex_utf8(c), size, size, &metrics);
   uint8_t *bitmap = malloc(3*size*size);
   uint8_t *bitmap_sdf = malloc(3*size*size);
   memset(bitmap, 0, 3*size*size);
@@ -98,6 +104,12 @@ void main(int argc, char **argv)
       bitmap_sdf[index+2] = (uint8_t)(255*(msdf[index+2]+size)/size);
     }
   }
+
+  printf("Glyph metrics for '%s':\n", c);
+  printf("left_bearing: %i\n",  metrics.left_bearing);
+  printf("advance:      %i\n",  metrics.advance);
+  printf("glyph width:  %i\n",  metrics.ix1 - metrics.ix0);
+  printf("glyph height: %i\n",  metrics.iy1 - metrics.iy0);
 
   // uncomment to draw line down center of png
   /*for (int y=0; y<size; y++) {

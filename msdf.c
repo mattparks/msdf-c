@@ -609,7 +609,7 @@ double shoelace(const vec2 a, const vec2 b)
   return (b[0]-a[0])*(a[1]+b[1]);
 }
 
-float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h)
+float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics)
 {
   float *bitmap = malloc(sizeof(float)*3*w*h);
   memset(bitmap, 0, sizeof(float)*3*w*h);
@@ -885,11 +885,6 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h)
   stbtt_GetGlyphHMetrics(font, stbtt_FindGlyphIndex(font,c), &advance, &left_bearing);
   left_bearing *= scale;
 
-  // calculate baseline
-  int ascent;
-  stbtt_GetFontVMetrics(font, &ascent, 0, 0);
-  int baseline = (int)(ascent*scale)-h;
-
   // get glyph bounding box (scaled later)
   int ix0, iy0, ix1, iy1;
   stbtt_GetGlyphBox(font, stbtt_FindGlyphIndex(font,c), &ix0, &iy0, &ix1, &iy1);
@@ -897,6 +892,19 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h)
   // calculate offset for centering glyph on bitmap
   int translate_x = (w/2)-((ix1 - ix0)*scale)/2-left_bearing;
   int translate_y = (h/2)-((iy1 - iy0)*scale)/2-iy0*scale;
+
+  // set the glyph metrics
+  // (pre-scale them)
+  if (metrics) {
+    metrics->left_bearing = left_bearing;
+    metrics->advance      = advance*scale;
+    metrics->ix0          = ix0*scale;
+    metrics->ix1          = ix1*scale;
+    metrics->iy0          = iy0*scale;
+    metrics->iy1          = iy1*scale;
+  }
+
+  // offset scale for base metrics
   scale *= 64.0;
 
   for (int y=0; y<h; ++y) {
