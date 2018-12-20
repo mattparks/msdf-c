@@ -14,6 +14,6 @@ Current issues:
 
 * ~~Lack of multi-byte character support~~ [X]
 
-* Error correction appears to be wrong (pixel clash)
+* ~~Error correction appears to be wrong (pixel clash)~~ [X]
 
 * Lacking a sensible API, and code is a bit messy

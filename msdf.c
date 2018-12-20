@@ -1,10 +1,7 @@
 #include "msdf.h"
 
-#define INF   -1e24
-#define RANGE 1.0
-
 // pixel at (x, y) in bitmap (arr)
-#define P(x, y, w, arr) ((vec3){arr[(3*((y*w)+x))], arr[(3*((y*w)+x))+1], arr[(3*((y*w)+x))+2]})
+#define P(x, y, w, arr) ((vec3){arr[(3*(((y)*w)+x))], arr[(3*(((y)*w)+x))+1], arr[(3*(((y)*w)+x))+2]})
 
 int solve_quadratic(double x[2], double a, double b, double c)
 {
@@ -1044,14 +1041,14 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h)
 
   // msdf error correction
   // entirely broken, I think.
-  /*typedef struct {
+  typedef struct {
     int x, y;
   } clashes_t;
   clashes_t *clashes = malloc(sizeof(clashes_t) * w * h);
   size_t cindex = 0;
 
-  double tx = 1.00000001*0.5-left_bearing;
-  double ty = 1.00000001*0.5-4.0f;
+  double tx = EDGE_THRESHOLD/(scale*RANGE);
+  double ty = EDGE_THRESHOLD/(scale*RANGE);
   for (int y=0; y<h; y++) {
     for (int x=0; x<w; x++) {
       if ((x > 0  && pixel_clash(P(x, y, w, bitmap), P(x-1, y, w, bitmap), tx))
@@ -1066,13 +1063,13 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h)
   }
 
   for (int i=0; i<cindex; i++) {
-    size_t index = (clashes[i].y*w)+clashes[i].x;
+    size_t index = 3*((clashes[i].y*w)+clashes[i].x);
     float med = median(bitmap[index], bitmap[index+1], bitmap[index+2]);
     bitmap[index+0] = med;
     bitmap[index+1] = med;
     bitmap[index+2] = med;
   }
-  free(clashes);*/
+  free(clashes);
 
   return bitmap;
 }

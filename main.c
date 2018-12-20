@@ -3,14 +3,17 @@
  msdf generator. It generates a bitmap from character
  you specify.
 
- Not intended for real-world use, this is purely an example.
- Embed msdf.c/h into your code directly and use however
- you need to.
+ This c file is not intended for real-world use.
+ this is purely an example. Embed msdf.c/h into your
+ code directly and use however you need to.
 
  Usage:
- ./msdf_gen A  
+ ./msdf_gen 'A' glyph.png
 
- The resulting bitmap will be stored in msdf.png
+ The resulting bitmap will be stored in glyph.png
+ the MSDF bitmap will be stored in msdf_glyph.png.
+
+ Supports multi-byte characters (utf8)
  */
 
 #include "msdf.h"
@@ -23,8 +26,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define INF   -1e24
-#define RANGE 1.0
+#define PX_RANGE 4.0
 
 uint8_t* io_read_file(const char *path, const char *mode)
 {
@@ -57,10 +59,11 @@ uint8_t* io_read_file(const char *path, const char *mode)
 
 void main(int argc, char **argv)
 {
-  char *c = argv[1];
+  char *c  = argv[1];
+  char *out = argv[2];
 
   // load the ttf data
-  uint8_t *data = io_read_file("font/NotoSans-Regular.ttf", "rb");
+  uint8_t *data = io_read_file("font/OpenSans-Regular.ttf", "rb");
   if (!data) {
     printf("Failed loading font.\n");
     return;
@@ -82,7 +85,7 @@ void main(int argc, char **argv)
       size_t index = 3*((y*size)+x);
 
       float v = median(msdf[index], msdf[index+1], msdf[index+2]) - 0.5;
-      v *= vec2_mul_inner((vec2){2.0f/size, 2.0f/size}, (vec2){x/0.5, y/0.5});
+      v *= vec2_mul_inner((vec2){PX_RANGE/size, PX_RANGE/size}, (vec2){size, size});
       float a = MAX(0.0, MIN(v + 0.5, 1.0));
       a = sqrt(1.0 * 1.0 * (1.0 - a) + 0.0 * 0.0 * a);
 
@@ -105,8 +108,10 @@ void main(int argc, char **argv)
   }*/
 
   // debug output
-  stbi_write_png("glyph.png", size, size, 3, bitmap, size*3);
-  stbi_write_png("msdf.png", size, size, 3, bitmap_sdf, size*3);
+  char buff[256];
+  sprintf(buff, "%s_", out);
+  stbi_write_png(out, size, size, 3, bitmap, size*3);
+  stbi_write_png(buff, size, size, 3, bitmap_sdf, size*3);
 
   free(data);
   free(msdf);

@@ -20,7 +20,7 @@
 #define EX_MSDF_H
 
 #include "stb_truetype.h"
-#include "inttypes.h"
+#include <inttypes.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
@@ -32,6 +32,10 @@
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
+#define INF   -1e24
+#define RANGE 2.0
+#define EDGE_THRESHOLD 1.00000001
 
 typedef float vec2[2];
 typedef float vec3[3];
