@@ -3,6 +3,97 @@
 // pixel at (x, y) in bitmap (arr)
 #define P(x, y, w, arr) ((vec3){arr[(3*(((y)*w)+x))], arr[(3*(((y)*w)+x))+1], arr[(3*(((y)*w)+x))+2]})
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
+#define INF   -1e24
+#define RANGE 2.0
+#define EDGE_THRESHOLD 1.00000001
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+typedef float vec2[2];
+typedef float vec3[3];
+
+typedef struct {
+  double dist;
+  double d;
+} signed_distance_t;
+
+// the possible types:
+// STBTT_vmove  = start of a contour
+// STBTT_vline  = linear segment
+// STBTT_vcurve = quadratic segment
+// STBTT_vcubic = cubic segment
+typedef struct {
+  int color;
+  vec2 p[4];
+  int type;
+} edge_segment_t;
+
+// defines what color channel an edge belongs to
+typedef enum {
+    BLACK = 0,
+    RED = 1,
+    GREEN = 2,
+    YELLOW = 3,
+    BLUE = 4,
+    MAGENTA = 5,
+    CYAN = 6,
+    WHITE = 7
+} edge_color_t;
+
+inline double median(double a, double b, double c)
+{
+  return MAX(MIN(a, b), MIN(MAX(a, b), c));
+}
+
+inline int nonzero_sign(double n)
+{
+  return 2*(n > 0)-1;
+}
+
+inline double cross(vec2 a, vec2 b)
+{
+  return a[0]*b[1] - a[1]*b[0];
+}
+
+inline void vec2_scale(vec2 r, vec2 const v, float const s)
+{
+  int i;
+  for(i=0; i<2; ++i)
+    r[i] = v[i] * s;
+}
+
+inline float vec2_mul_inner(vec2 const a, vec2 const b)
+{
+  float p = 0.;
+  int i;
+  for(i=0; i<2; ++i)
+    p += b[i]*a[i];
+  return p;
+}
+
+inline float vec2_len(vec2 const v)
+{
+  return sqrtf(vec2_mul_inner(v,v));
+}
+
+inline void vec2_norm(vec2 r, vec2 const v)
+{
+  float k = 1.0 / vec2_len(v);
+  vec2_scale(r, v, k);
+}
+
+inline void vec2_sub(vec2 r, vec2 const a, vec2 const b)
+{
+  int i;
+  for(i=0; i<2; ++i)
+    r[i] = a[i] - b[i];
+}
+
 int solve_quadratic(double x[2], double a, double b, double c)
 {
   if (fabs(a) < 1e-14) {
@@ -1050,7 +1141,6 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   free(verts);
 
   // msdf error correction
-  // entirely broken, I think.
   typedef struct {
     int x, y;
   } clashes_t;

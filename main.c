@@ -1,7 +1,7 @@
 /*
  This is just a simple example usage of the
- msdf generator. It generates a bitmap from character
- you specify.
+ msdf generator. It generates a bitmap from the 
+ character you specify.
 
  This c file is not intended for real-world use.
  this is purely an example. Embed msdf.c/h into your
@@ -27,6 +27,9 @@
 #include "stb_image_write.h"
 
 #define PX_RANGE 4.0
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 uint8_t* io_read_file(const char *path, const char *mode)
 {
@@ -61,6 +64,7 @@ void main(int argc, char **argv)
 {
   char *c  = argv[1];
   char *out = argv[2];
+  int size = 128;
 
   // load the ttf data
   uint8_t *data = io_read_file("font/OpenSans-Regular.ttf", "rb");
@@ -77,9 +81,12 @@ void main(int argc, char **argv)
   int ascent, descent;
   stbtt_GetFontVMetrics(&font, &ascent, &descent, 0);
 
+  // Funit to pixel scale
+  float scale = stbtt_ScaleForPixelHeight(&font, size);
+  int baseline = (int)(ascent*scale);
+
   // generate a msdf bitmap
   // ideally you would do this in your shader
-  int size = 128;
   ex_metrics_t metrics;
   float *msdf = ex_msdf_glyph(&font, ex_utf8(c), size, size, &metrics);
   uint8_t *bitmap = malloc(3*size*size);
@@ -90,8 +97,12 @@ void main(int argc, char **argv)
     for (int x=0; x<size; x++) {
       size_t index = 3*((y*size)+x);
 
-      float v = median(msdf[index], msdf[index+1], msdf[index+2]) - 0.5;
-      v *= vec2_mul_inner((vec2){PX_RANGE/size, PX_RANGE/size}, (vec2){size, size});
+      float v = MAX(MIN(msdf[index], msdf[index+1]), MIN(MAX(msdf[index], msdf[index+1]), msdf[index+2])) - 0.5;
+
+      float p = 0.;
+      for(int i=0; i<2; ++i)
+        p += (PX_RANGE/size)*size;
+      v *= p;
       float a = MAX(0.0, MIN(v + 0.5, 1.0));
       a = sqrt(1.0 * 1.0 * (1.0 - a) + 0.0 * 0.0 * a);
 
@@ -110,6 +121,9 @@ void main(int argc, char **argv)
   printf("advance:      %i\n",  metrics.advance);
   printf("glyph width:  %i\n",  metrics.ix1 - metrics.ix0);
   printf("glyph height: %i\n",  metrics.iy1 - metrics.iy0);
+  printf("glyph x:   %i %i\n",  metrics.ix0,  metrics.ix1);
+  printf("glyph y:   %i %i\n",  metrics.iy0,  metrics.iy1);
+  printf("baseline:     %i\n",  baseline);
 
   // uncomment to draw line down center of png
   /*for (int y=0; y<size; y++) {
@@ -121,7 +135,7 @@ void main(int argc, char **argv)
 
   // debug output
   char buff[256];
-  sprintf(buff, "%s_", out);
+  sprintf(buff, "msdf_%s", out);
   stbi_write_png(out, size, size, 3, bitmap, size*3);
   stbi_write_png(buff, size, size, 3, bitmap_sdf, size*3);
 
