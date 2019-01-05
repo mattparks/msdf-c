@@ -7,8 +7,8 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 #define INF   -1e24
-#define RANGE 2.0
-#define EDGE_THRESHOLD 1.00000001
+#define RANGE 1.0
+#define EDGE_THRESHOLD 0.02
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -703,7 +703,7 @@ double shoelace(const vec2 a, const vec2 b)
 float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics)
 {
   float *bitmap = malloc(sizeof(float)*3*w*h);
-  memset(bitmap, 0, sizeof(float)*3*w*h);
+  memset(bitmap, 0.0f, sizeof(float)*3*w*h);
 
   stbtt_vertex *verts;
   int num_verts = stbtt_GetGlyphShape(font, stbtt_FindGlyphIndex(font, c), &verts);
@@ -969,7 +969,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   contour_sd = malloc(sizeof(multi_distance_t) * contour_count);
 
   // Funit to pixel scale
-  float scale = stbtt_ScaleForPixelHeight(font, h);
+  float scale = stbtt_ScaleForMappingEmToPixels(font, h);
 
   // get left offset and advance
   int left_bearing, advance;
@@ -996,12 +996,12 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   }
 
   // offset scale for base metrics
-  scale *= 64.0;
+  // scale *= 64.0;
 
   for (int y=0; y<h; ++y) {
     int row = iy0 > iy1 ? y : h-y-1;
     for (int x=0; x<w; ++x) {
-      vec2 p = {(x+.5-translate_x)/scale, (y+.5-translate_y)/scale};
+      vec2 p = {(x+.5-translate_x)/(scale*64.0), (y+.5-translate_y)/(scale*64.0)};
 
       edge_point_t sr, sg, sb;
       sr.near_edge = sg.near_edge = sb.near_edge = NULL;
