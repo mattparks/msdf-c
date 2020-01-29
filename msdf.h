@@ -26,6 +26,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
   int left_bearing;
   int advance;
@@ -67,5 +71,9 @@ static inline uint32_t ex_utf8(const char *c) {
 
   return val;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // EX_MSDF_H

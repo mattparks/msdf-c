@@ -828,7 +828,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
     for (int j=0; j<contour_data[i].edge_count; ++j)
       corner_count++;
 
-  int corners[corner_count];
+  int *corners = malloc(sizeof(int) * corner_count);
   int corner_index = 0;
   for (int i=0; i<contour_count; ++i) {
       
@@ -863,7 +863,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
         for (int j=0; j<m; ++j)
           contour_data[i].edges[(corner+j)%m].color = (colors+1)[(int)(3+2.875*i/(m-1)-1.4375+.5)-3];
       } else if (contour_data[i].edge_count >= 1) {
-        edge_segment_t *parts[7] = {};
+        edge_segment_t *parts[7] = {NULL};
         edge_split(&contour_data[i].edges[0], parts[0+3*corner], parts[1+3*corner], parts[2+3*corner]);
         if (contour_data[i].edge_count >= 2) {
           edge_split(&contour_data[i].edges[1], parts[3-3*corner], parts[4-3*corner], parts[5-3*corner]);
@@ -904,10 +904,12 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
     }
   }
 
+  free(corners);
+
   // normalize shape
   for (int i=0; i<contour_count; i++) {
     if (contour_data[i].edge_count == 1) {
-      edge_segment_t *parts[3] = {};
+      edge_segment_t *parts[3] = {NULL};
       edge_split(&contour_data[i].edges[0], parts[0], parts[1], parts[2]);
       free(contour_data[i].edges);
       contour_data[i].edges = malloc(sizeof(edge_segment_t) * 3);

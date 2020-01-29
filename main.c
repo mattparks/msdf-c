@@ -62,8 +62,8 @@ uint8_t* io_read_file(const char *path, const char *mode)
 
 void main(int argc, char **argv)
 {
-  char *c  = argv[1];
-  char *out = argv[2];
+  char *c = "$";// argv[1];
+  char *out = "A.png";//argv[2];
   int size = 128;
 
   // load the ttf data
