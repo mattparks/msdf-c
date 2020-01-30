@@ -1,6 +1,7 @@
 /* msdf
   Handles multi-channel signed distance field bitmap
   generation from given ttf (stb_truetype.h) font.
+  https://github.com/exezin/msdf-c
 
   Depends on stb_truetype.h to load the ttf file.
 
@@ -19,7 +20,6 @@
 #ifndef EX_MSDF_H
 #define EX_MSDF_H
 
-#include "stb_truetype.h"
 #include <inttypes.h>
 #include <math.h>
 #include <string.h>
@@ -36,6 +36,8 @@ typedef struct {
   int ix0, ix1;
   int iy0, iy1;
 } ex_metrics_t;
+
+typedef struct stbtt_fontinfo stbtt_fontinfo;
 
 /*
   Generates a bitmap from the specified character (c)

@@ -1,5 +1,7 @@
 #include "msdf.h"
 
+#include "stb_truetype.h"
+
 // pixel at (x, y) in bitmap (arr)
 #define P(x, y, w, arr) ((vec3){arr[(3*(((y)*w)+x))], arr[(3*(((y)*w)+x))+1], arr[(3*(((y)*w)+x))+2]})
 
@@ -45,29 +47,29 @@ typedef enum {
     WHITE = 7
 } edge_color_t;
 
-inline double median(double a, double b, double c)
+double median(double a, double b, double c)
 {
   return MAX(MIN(a, b), MIN(MAX(a, b), c));
 }
 
-inline int nonzero_sign(double n)
+int nonzero_sign(double n)
 {
   return 2*(n > 0)-1;
 }
 
-inline double cross(vec2 a, vec2 b)
+double cross(vec2 a, vec2 b)
 {
   return a[0]*b[1] - a[1]*b[0];
 }
 
-inline void vec2_scale(vec2 r, vec2 const v, float const s)
+void vec2_scale(vec2 r, vec2 const v, float const s)
 {
   int i;
   for(i=0; i<2; ++i)
     r[i] = v[i] * s;
 }
 
-inline float vec2_mul_inner(vec2 const a, vec2 const b)
+float vec2_mul_inner(vec2 const a, vec2 const b)
 {
   float p = 0.;
   int i;
@@ -76,18 +78,18 @@ inline float vec2_mul_inner(vec2 const a, vec2 const b)
   return p;
 }
 
-inline float vec2_len(vec2 const v)
+float vec2_len(vec2 const v)
 {
   return sqrtf(vec2_mul_inner(v,v));
 }
 
-inline void vec2_norm(vec2 r, vec2 const v)
+void vec2_norm(vec2 r, vec2 const v)
 {
   float k = 1.0 / vec2_len(v);
   vec2_scale(r, v, k);
 }
 
-inline void vec2_sub(vec2 r, vec2 const a, vec2 const b)
+void vec2_sub(vec2 r, vec2 const a, vec2 const b)
 {
   int i;
   for(i=0; i<2; ++i)
@@ -705,6 +707,33 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   float *bitmap = malloc(sizeof(float)*3*w*h);
   memset(bitmap, 0.0f, sizeof(float)*3*w*h);
 
+  // Funit to pixel scale
+  float scale = stbtt_ScaleForMappingEmToPixels(font, h);
+
+  // get left offset and advance
+  int left_bearing, advance;
+  stbtt_GetGlyphHMetrics(font, stbtt_FindGlyphIndex(font, c), &advance, &left_bearing);
+  left_bearing *= scale;
+
+  // get glyph bounding box (scaled later)
+  int ix0, iy0, ix1, iy1;
+  stbtt_GetGlyphBox(font, stbtt_FindGlyphIndex(font, c), &ix0, &iy0, &ix1, &iy1);
+
+  // calculate offset for centering glyph on bitmap
+  int translate_x = (w / 2) - ((ix1 - ix0) * scale) / 2 - left_bearing;
+  int translate_y = (h / 2) - ((iy1 - iy0) * scale) / 2 - iy0 * scale;
+
+  // set the glyph metrics
+  // (pre-scale them)
+  if (metrics) {
+      metrics->left_bearing = left_bearing;
+      metrics->advance = advance * scale;
+      metrics->ix0 = ix0 * scale;
+      metrics->ix1 = ix1 * scale;
+      metrics->iy0 = iy0 * scale;
+      metrics->iy1 = iy1 * scale;
+  }
+
   stbtt_vertex *verts;
   int num_verts = stbtt_GetGlyphShape(font, stbtt_FindGlyphIndex(font, c), &verts);
   
@@ -969,33 +998,6 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
 
   multi_distance_t *contour_sd;
   contour_sd = malloc(sizeof(multi_distance_t) * contour_count);
-
-  // Funit to pixel scale
-  float scale = stbtt_ScaleForMappingEmToPixels(font, h);
-
-  // get left offset and advance
-  int left_bearing, advance;
-  stbtt_GetGlyphHMetrics(font, stbtt_FindGlyphIndex(font,c), &advance, &left_bearing);
-  left_bearing *= scale;
-
-  // get glyph bounding box (scaled later)
-  int ix0, iy0, ix1, iy1;
-  stbtt_GetGlyphBox(font, stbtt_FindGlyphIndex(font,c), &ix0, &iy0, &ix1, &iy1);
-
-  // calculate offset for centering glyph on bitmap
-  int translate_x = (w/2)-((ix1 - ix0)*scale)/2-left_bearing;
-  int translate_y = (h/2)-((iy1 - iy0)*scale)/2-iy0*scale;
-
-  // set the glyph metrics
-  // (pre-scale them)
-  if (metrics) {
-    metrics->left_bearing = left_bearing;
-    metrics->advance      = advance*scale;
-    metrics->ix0          = ix0*scale;
-    metrics->ix1          = ix1*scale;
-    metrics->iy0          = iy0*scale;
-    metrics->iy1          = iy1*scale;
-  }
 
   // offset scale for base metrics
   // scale *= 64.0;
