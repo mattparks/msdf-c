@@ -99,6 +99,10 @@ void main(int argc, char **argv)
   float scale = stbtt_ScaleForPixelHeight(&font, size);
   int baseline = (int)(ascent*scale);
 
+  // pixel range needs inverting for otf fonts
+  // not entirely sure why
+  int otf = (strstr(fontf, ".otf")) ? -1 : 1;
+
   // generate a msdf bitmap
   // ideally you would do this in your shader
   ex_metrics_t metrics;
@@ -115,7 +119,7 @@ void main(int argc, char **argv)
 
       float p = 0.;
       for(int i=0; i<2; ++i)
-        p += (PX_RANGE/size)*size;
+        p += ((PX_RANGE*otf)/size)*size;
       v *= p;
       float a = MAX(0.0, MIN(v + 0.5, 1.0));
       a = sqrt(1.0 * 1.0 * (1.0 - a) + 0.0 * 0.0 * a);
