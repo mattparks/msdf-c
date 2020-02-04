@@ -1,6 +1,6 @@
 /*
  This is just a simple example usage of the
- msdf generator. It generates a bitmap from the 
+ msdf generator. It generates a bitmap from the
  character you specify.
 
  This c file is not intended for real-world use.
@@ -62,12 +62,26 @@ uint8_t* io_read_file(const char *path, const char *mode)
 
 void main(int argc, char **argv)
 {
-  char *c  = argv[1];
-  char *out = argv[2];
+  char fontdefault[] = "font/OpenSans-Regular.ttf";
   int size = 128;
 
-  // load the ttf data
-  uint8_t *data = io_read_file("font/OpenSans-Regular.ttf", "rb");
+  char *c     = argv[1];
+  char *out   = argv[2];
+  char *fon   = argv[3];
+  char *fontf = !fon ? fontdefault : fon;
+
+  // print help
+  if (!c || !out || strcmp(c, "-h") == 0) {
+    printf("msdf-c, a C99 multi-channel signed-distance-field generator\n");
+    printf("by exezin https://github.com/exezin/msdf-c\n");
+    printf("based on https://github.com/Chlumsky/msdfgen\n");
+    printf("usage:\n  ./msdf_gen 'A' out.png \"path/to/font.ttf\"\n");
+
+    return;
+  }
+
+  // load the ttf (or otf) data
+  uint8_t *data = io_read_file(fontf, "rb");
   if (!data) {
     printf("Failed loading font.\n");
     return;
@@ -125,13 +139,18 @@ void main(int argc, char **argv)
   printf("glyph y:   %i %i\n",  metrics.iy0,  metrics.iy1);
   printf("baseline:     %i\n",  baseline);
 
-  // uncomment to draw line down center of png
-  /*for (int y=0; y<size; y++) {
+  // uncomment to draw a cross over the image
+  // for debugging alignment issues
+  for (int y=0; y<size; y++) {
     int index = 3*((y*size)+size/2);
     bitmap[index+0] = 0;
     bitmap[index+1] = 0;
     bitmap[index+2] = 0;
-  }*/
+    index = 3*((size/2*size)+y);
+    bitmap[index+0] = 0;
+    bitmap[index+1] = 0;
+    bitmap[index+2] = 0;
+  }
 
   // debug output
   char buff[256];
