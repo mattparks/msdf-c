@@ -8,7 +8,7 @@ generation from given ttf/otf font.
 
 [Based on the C++ implementation by Viktor Chlumský.](https://github.com/Chlumsky/msdfgen)
 
-[Example of using this with GL (from my C engine)](https://github.com/exezin/exengine/blob/master/src/exengine/text.c)
+[Example of using this with GL (from my C engine)](https://github.com/exezin/exengine/blob/master/src/exengine/render/text.c)
 
 
 ~~~
@@ -37,4 +37,4 @@ Current issues:
 
 * ~~Error correction appears to be wrong (pixel clash)~~ [X]
 
-* Lacking a sensible API, and code is a bit messy
+* ~~Lacking a sensible API~~ [X], and code is a bit messy
