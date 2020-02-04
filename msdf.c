@@ -123,7 +123,7 @@ int solve_quadratic(double x[2], double a, double b, double c)
 int solve_cubic_normed(double *x, double a, double b, double c)
 {
   double a2 = a*a;
-  double q  = (a2 - 3*b)/9; 
+  double q  = (a2 - 3*b)/9;
   double r  = (a*(2*a2-9*b) + 27*c)/54;
   double r2 = r*r;
   double q3 = q*q*q;
@@ -139,7 +139,7 @@ int solve_cubic_normed(double *x, double a, double b, double c)
     x[2] = q*cos((t-2*M_PI)/3)-a;
     return 3;
   } else {
-    A = -pow(fabs(r)+sqrt(r2-q3), 1/3.); 
+    A = -pow(fabs(r)+sqrt(r2-q3), 1/3.);
     if (r < 0) A = -A;
     B = A == 0 ? 0 : q/A;
     a /= 3;
@@ -156,14 +156,14 @@ int solve_cubic(double x[3], double a, double b, double c, double d)
 {
   if (fabs(a) < 1e-14)
     return solve_quadratic(x, b, c, d);
-  
+
   return solve_cubic_normed(x, b/a, c/a, d/a);
 }
 
 void getortho(vec2 r, vec2 const v, int polarity, int allow_zero)
 {
   double len = vec2_len(v);
-  
+
   if (len == 0) {
     if (polarity) {
       r[0] = 0;
@@ -174,7 +174,7 @@ void getortho(vec2 r, vec2 const v, int polarity, int allow_zero)
     }
     return;
   }
-  
+
   if (polarity) {
     r[0] = -v[1]/len;
     r[1] = v[0]/len;
@@ -218,7 +218,7 @@ int pixel_clash(const vec3 a, const vec3 b, double threshold)
 }
 
 void mix(vec2 r, vec2 a, vec2 b, double weight)
-{ 
+{
   r[0] = (1-weight)*a[0]+weight*b[0];
   r[1] = (1-weight)*a[1]+weight*b[1];
 }
@@ -327,7 +327,7 @@ void point(vec2 r, edge_segment_t *e, double param)
   }
 }
 
-// linear edge signed distance 
+// linear edge signed distance
 signed_distance_t linear_dist(edge_segment_t *e, vec2 origin, double *param)
 {
   vec2 aq, ab, eq;
@@ -393,7 +393,7 @@ signed_distance_t quadratic_dist(edge_segment_t *e, vec2 origin, double *param)
       vec2 end_point, a, b;
       end_point[0] = e->p[0][0]+2*t[i]*ab[0]+t[i]*t[i]*br[0];
       end_point[1] = e->p[0][1]+2*t[i]*ab[1]+t[i]*t[i]*br[1];
-      
+
       vec2_sub(a, e->p[2], e->p[0]);
       vec2_sub(b, end_point, origin);
       double distance = nonzero_sign(cross(a, b))*vec2_len(b);
@@ -470,7 +470,7 @@ signed_distance_t cubic_dist(edge_segment_t *e, vec2 origin, double *param)
       }
       if (step == search_starts)
         break;
-      
+
       vec2 d1,d2;
       d1[0] = 3*as[0]*t*t+6*br[0]*t+3*ab[0];
       d1[1] = 3*as[1]*t*t+6*br[1]*t+3*ab[1];
@@ -570,12 +570,12 @@ void switch_color(edge_color_t *color, unsigned long long *seed, edge_color_t ba
 void linear_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edge_segment_t *p3)
 {
   vec2 p;
-  
+
   point(p, e, 1/3.0);
   memcpy(&p1->p[0], e->p[0] , sizeof(vec2));
   memcpy(&p1->p[1], p, sizeof(vec2));
   p1->color = e->color;
-  
+
   point(p, e, 1/3.0);
   memcpy(&p2->p[0], p , sizeof(vec2));
   point(p, e, 2/3.0);
@@ -592,14 +592,14 @@ void linear_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edg
 void quadratic_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edge_segment_t *p3)
 {
   vec2 p,a,b;
-  
+
   memcpy(&p1->p[0], e->p[0] , sizeof(vec2));
   mix(p, e->p[0], e->p[1], 1/3.0);
   memcpy(&p1->p[1], p, sizeof(vec2));
   point(p, e, 1/3.0);
   memcpy(&p1->p[2], p, sizeof(vec2));
   p1->color = e->color;
-  
+
   point(p, e, 1/3.0);
   memcpy(&p2->p[0], p , sizeof(vec2));
   mix(a, e->p[0], e->p[1], 5/9.0);
@@ -621,7 +621,7 @@ void quadratic_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, 
 void cubic_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edge_segment_t *p3)
 {
   vec2 p,a,b,c,d;
-  
+
   memcpy(&p1->p[0], e->p[0], sizeof(vec2)); // p1 0
   if (e->p[0] == e->p[1]) {
     memcpy(&p1->p[1], e->p[0], sizeof(vec2)); // ? p1 1
@@ -707,7 +707,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
 
   stbtt_vertex *verts;
   int num_verts = stbtt_GetGlyphShape(font, stbtt_FindGlyphIndex(font, c), &verts);
-  
+
   // figure out how many contours exist
   int contour_count = 0;
   for (int i=0; i<num_verts; i++) {
@@ -749,7 +749,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
     edge_segment_t *edges;
     size_t edge_count;
   } contour_t;
-  
+
   // process verts into series of contour-specific edge lists
   vec2 initial = {0, 0}; // fix this?
   contour_t *contour_data = malloc(sizeof(contour_t) * contour_count);
@@ -789,9 +789,9 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
           memcpy(&e->p[0], initial, sizeof(vec2));
           memcpy(&e->p[1], c, sizeof(vec2));
           memcpy(&e->p[2], p, sizeof(vec2));
-          
+
           if ((e->p[0][0] == e->p[1][0] && e->p[0][1] == e->p[1][1]) ||
-              (e->p[1][0] == e->p[2][0] && e->p[1][1] == e->p[2][1])) { 
+              (e->p[1][0] == e->p[2][0] && e->p[1][1] == e->p[2][1])) {
             e->p[1][0] = 0.5*(e->p[0][0]+e->p[2][0]);
             e->p[1][1] = 0.5*(e->p[0][1]+e->p[2][1]);
           }
@@ -815,7 +815,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
           k++;
           break;
         }
-      } 
+      }
     }
   }
 
@@ -828,10 +828,10 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
     for (int j=0; j<contour_data[i].edge_count; ++j)
       corner_count++;
 
-  int corners[corner_count];
+  int *corners = malloc(sizeof(int) * corner_count);
   int corner_index = 0;
   for (int i=0; i<contour_count; ++i) {
-      
+
     if (contour_data[i].edge_count > 0) {
       vec2 prev_dir, dir;
       direction(prev_dir, &contour_data[i].edges[contour_data[i].edge_count-1], 1);
@@ -903,11 +903,12 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
       }
     }
   }
+  free(corners);
 
   // normalize shape
   for (int i=0; i<contour_count; i++) {
     if (contour_data[i].edge_count == 1) {
-      edge_segment_t *parts[3] = {};
+      edge_segment_t *parts[3] = {0};
       edge_split(&contour_data[i].edges[0], parts[0], parts[1], parts[2]);
       free(contour_data[i].edges);
       contour_data[i].edges = malloc(sizeof(edge_segment_t) * 3);
@@ -1099,7 +1100,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
         dist_to_pseudo(&sg.min_distance, p, sg.near_param, sg.near_edge);
       if (sb.near_edge)
         dist_to_pseudo(&sb.min_distance, p, sb.near_param, sb.near_edge);
-    
+
       multi_distance_t msd;
       msd.r = msd.g = msd.b = msd.med = INF;
       if (pos_dist >= 0 && fabs(pos_dist) <= fabs(neg_dist)) {
