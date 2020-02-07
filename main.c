@@ -26,7 +26,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define PX_RANGE 4.0
+#define PX_RANGE 2.0
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -106,7 +106,7 @@ void main(int argc, char **argv)
   // generate a msdf bitmap
   // ideally you would do this in your shader
   ex_metrics_t metrics;
-  float *msdf = ex_msdf_glyph(&font, ex_utf8(c), size, size, &metrics);
+  float *msdf = ex_msdf_glyph(&font, ex_utf8(c), size, size, &metrics, 0);
   uint8_t *bitmap = malloc(3*size*size);
   uint8_t *bitmap_sdf = malloc(3*size*size);
   memset(bitmap, 0, 3*size*size);
@@ -118,7 +118,7 @@ void main(int argc, char **argv)
       float v = MAX(MIN(msdf[index], msdf[index+1]), MIN(MAX(msdf[index], msdf[index+1]), msdf[index+2])) - 0.5;
 
       float p = 0.;
-      for(int i=0; i<2; ++i)
+      for(int i=0; i<4; ++i)
         p += ((PX_RANGE*otf)/size)*size;
       v *= p;
       float a = MAX(0.0, MIN(v + 0.5, 1.0));
@@ -145,7 +145,7 @@ void main(int argc, char **argv)
 
   // uncomment to draw a cross over the image
   // for debugging alignment issues
-  /*for (int y=0; y<size; y++) {
+  for (int y=0; y<size; y++) {
     int index = 3*((y*size)+size/2);
     bitmap[index+0] = 0;
     bitmap[index+1] = 0;
@@ -154,7 +154,7 @@ void main(int argc, char **argv)
     bitmap[index+0] = 0;
     bitmap[index+1] = 0;
     bitmap[index+2] = 0;
-  }*/
+  }
 
   // debug output
   char buff[256];

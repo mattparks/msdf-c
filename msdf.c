@@ -700,7 +700,7 @@ double shoelace(const vec2 a, const vec2 b)
   return (b[0]-a[0])*(a[1]+b[1]);
 }
 
-float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics)
+float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics, int autofit)
 {
   float *bitmap = malloc(sizeof(float)*3*w*h);
   memset(bitmap, 0.0f, sizeof(float)*3*w*h);
@@ -753,6 +753,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   // process verts into series of contour-specific edge lists
   vec2 initial = {0, 0}; // fix this?
   contour_t *contour_data = malloc(sizeof(contour_t) * contour_count);
+  double cscale = 64.0;
   for (int i=0; i<contour_count; i++) {
     size_t count = contours[i].end - contours[i].start;
     contour_data[i].edges = malloc(sizeof(edge_segment_t) * count);
@@ -768,13 +769,13 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
 
       switch (v->type) {
         case STBTT_vmove: {
-          vec2 p = {v->x/64.0, v->y/64.0};
+          vec2 p = {v->x/cscale, v->y/cscale};
           memcpy(&initial, p, sizeof(vec2));
           break;
         }
 
         case STBTT_vline: {
-          vec2 p = {v->x/64.0, v->y/64.0};
+          vec2 p = {v->x/cscale, v->y/cscale};
           memcpy(&e->p[0], initial, sizeof(vec2));
           memcpy(&e->p[1], p, sizeof(vec2));
           memcpy(&initial, p, sizeof(vec2));
@@ -784,8 +785,8 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
         }
 
         case STBTT_vcurve: {
-          vec2 p = {v->x/64.0, v->y/64.0};
-          vec2 c = {v->cx/64.0, v->cy/64.0};
+          vec2 p = {v->x/cscale, v->y/cscale};
+          vec2 c = {v->cx/cscale, v->cy/cscale};
           memcpy(&e->p[0], initial, sizeof(vec2));
           memcpy(&e->p[1], c, sizeof(vec2));
           memcpy(&e->p[2], p, sizeof(vec2));
@@ -803,9 +804,9 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
         }
 
         case STBTT_vcubic: {
-          vec2 p = {v->x/64.0, v->y/64.0};
-          vec2 c = {v->cx/64.0, v->cy/64.0};
-          vec2 c1 = {v->cx1/64.0, v->cy1/64.0};
+          vec2 p = {v->x/cscale, v->y/cscale};
+          vec2 c = {v->cx/cscale, v->cy/cscale};
+          vec2 c1 = {v->cx1/cscale, v->cy1/cscale};
           memcpy(&e->p[0], initial, sizeof(vec2));
           memcpy(&e->p[1], c, sizeof(vec2));
           memcpy(&e->p[2], c1, sizeof(vec2));
@@ -961,6 +962,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
     windings[i] = ((0 < total)-(total < 0));
   }
 
+
   typedef struct {
     double r, g, b;
     double med;
@@ -972,14 +974,30 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   // Funit to pixel scale
   float scale = stbtt_ScaleForMappingEmToPixels(font, h);
 
+  // get glyph bounding box (scaled later)
+  int ix0, iy0, ix1, iy1;
+  float xoff = .5, yoff = .5;
+  stbtt_GetGlyphBox(font, stbtt_FindGlyphIndex(font,c), &ix0, &iy0, &ix1, &iy1);
+
+  if (autofit) {
+    // calculate new height
+    float newh = h + (h - (iy1 - iy0)*scale) - 4;
+
+    // calculate new scale
+    // see 'stbtt_ScaleForMappingEmToPixels' in stb_truetype.h
+    uint8_t *p = font->data + font->head + 18;
+    int unitsPerEm = p[0]*256 + p[1];
+    scale = newh / unitsPerEm;
+
+    // make sure we are centered
+    xoff = .0;
+    yoff = .0;
+  }
+
   // get left offset and advance
   int left_bearing, advance;
   stbtt_GetGlyphHMetrics(font, stbtt_FindGlyphIndex(font,c), &advance, &left_bearing);
   left_bearing *= scale;
-
-  // get glyph bounding box (scaled later)
-  int ix0, iy0, ix1, iy1;
-  stbtt_GetGlyphBox(font, stbtt_FindGlyphIndex(font,c), &ix0, &iy0, &ix1, &iy1);
 
   // calculate offset for centering glyph on bitmap
   int translate_x = (w/2)-((ix1 - ix0)*scale)/2-left_bearing;
@@ -996,13 +1014,10 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
     metrics->iy1          = iy1*scale;
   }
 
-  // offset scale for base metrics
-  // scale *= 64.0;
-
   for (int y=0; y<h; ++y) {
     int row = iy0 > iy1 ? y : h-y-1;
     for (int x=0; x<w; ++x) {
-      vec2 p = {(x+.5-translate_x)/(scale*64.0), (y+.5-translate_y)/(scale*64.0)};
+      vec2 p = {(x+xoff-translate_x)/(scale*64.0), (y+yoff-translate_y)/(scale*64.0)};
 
       edge_point_t sr, sg, sb;
       sr.near_edge = sg.near_edge = sb.near_edge = NULL;
