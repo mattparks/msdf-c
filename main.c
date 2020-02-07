@@ -145,7 +145,7 @@ void main(int argc, char **argv)
 
   // uncomment to draw a cross over the image
   // for debugging alignment issues
-  for (int y=0; y<size; y++) {
+  /*for (int y=0; y<size; y++) {
     int index = 3*((y*size)+size/2);
     bitmap[index+0] = 0;
     bitmap[index+1] = 0;
@@ -154,7 +154,7 @@ void main(int argc, char **argv)
     bitmap[index+0] = 0;
     bitmap[index+1] = 0;
     bitmap[index+2] = 0;
-  }
+  }*/
 
   // debug output
   char buff[256];
