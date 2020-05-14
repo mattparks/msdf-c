@@ -128,10 +128,8 @@ void main(int argc, char **argv)
 
   // generate a msdf bitmap
   // ideally you would do this in your shader
-  float *msdf = malloc(sizeof(float)*3*size_sdf*size_sdf);
-  memset(msdf, 0.0f, sizeof(float)*3*size_sdf*size_sdf);
   ex_metrics_t metrics;
-  ex_msdf_glyph(&font, ex_utf8(c), size_sdf, size_sdf, msdf, &metrics, 1);
+  float *msdf = ex_msdf_glyph(&font, ex_utf8(c), size_sdf, size_sdf, &metrics, 1);
   uint8_t *bitmap_sdf = malloc(3*size_sdf *size_sdf);
   memset(bitmap_sdf, 0, 3*size_sdf *size_sdf);
   for (int y = 0; y < size_sdf; y++) {

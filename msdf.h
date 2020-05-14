@@ -43,7 +43,8 @@ typedef struct {
   Bitmap is a 3-channel float array (3*w*h)
   Returned result is 1 for success or 0 in case of an error
  */
-int ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, float *bitmap, ex_metrics_t *metrics, int autofit);
+int ex_msdf_glyph_mem(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, float *bitmap, ex_metrics_t *metrics, int autofit);
+float *ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics, int autofit);
 
 static inline uint32_t ex_utf8(const char *c) {
   uint32_t val = 0;

@@ -700,7 +700,7 @@ double shoelace(const vec2 a, const vec2 b)
   return (b[0]-a[0])*(a[1]+b[1]);
 }
 
-int ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, float *bitmap, ex_metrics_t *metrics, int autofit)
+int ex_msdf_glyph_mem(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, float *bitmap, ex_metrics_t *metrics, int autofit)
 {
   // Funit to pixel scale
   float scale = stbtt_ScaleForMappingEmToPixels(font, h);
@@ -1164,9 +1164,9 @@ int ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, float *b
   for (int y=0; y<h; y++) {
     for (int x=0; x<w; x++) {
       if ((x > 0  && pixel_clash(P(x, y, w, bitmap), P(MAX(x-1, 0), y, w, bitmap), tx))
-      || (x < w-1 && pixel_clash(P(x, y, w, bitmap), P(MIN(x+1, w), y, w, bitmap), tx))
+      || (x < w-1 && pixel_clash(P(x, y, w, bitmap), P(MIN(x+1, w-1), y, w, bitmap), tx))
       || (y > 0   && pixel_clash(P(x, y, w, bitmap), P(x, MAX(y-1, 0), w, bitmap), ty))
-      || (y < h-1 && pixel_clash(P(x, y, w, bitmap), P(x, MIN(y+1, h), w, bitmap), ty))
+      || (y < h-1 && pixel_clash(P(x, y, w, bitmap), P(x, MIN(y+1, h-1), w, bitmap), ty))
         ) {
           clashes[cindex].x   = x;
           clashes[cindex++].y = y;
@@ -1184,4 +1184,15 @@ int ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, float *b
   free(clashes);
 
   return 1;
+}
+
+float *ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics, int autofit)
+{
+  float *bitmap = malloc(sizeof(float)*3*w*h);
+  memset(bitmap, 0.0f, sizeof(float)*3*w*h);
+  if (ex_msdf_glyph_mem(font, c, w, h, bitmap, metrics, autofit) != 1) {
+    free(bitmap);
+    return NULL;
+  }
+  return bitmap;
 }
