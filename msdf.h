@@ -20,7 +20,6 @@
 #ifndef EX_MSDF_H
 #define EX_MSDF_H
 
-#include "stb_truetype.h"
 #include <inttypes.h>
 #include <math.h>
 #include <string.h>
@@ -30,6 +29,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct FT_LibraryRec_ *FT_Library;
+typedef struct FT_FaceRec_ *FT_Face;
 	
 typedef struct {
   int left_bearing;
@@ -43,8 +45,8 @@ typedef struct {
   Bitmap is a 3-channel float array (3*w*h)
   Returned result is 1 for success or 0 in case of an error
  */
-int ex_msdf_glyph_mem(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, float *bitmap, ex_metrics_t *metrics, int autofit);
-float *ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics, int autofit);
+int ex_msdf_glyph_mem(FT_Face face, uint32_t c, size_t w, size_t h, float *bitmap, ex_metrics_t *metrics, int autofit);
+float *ex_msdf_glyph(FT_Face face, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics, int autofit);
 
 static inline uint32_t ex_utf8(const char *c) {
   uint32_t val = 0;

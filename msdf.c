@@ -1,5 +1,8 @@
 #include "msdf.h"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 // pixel at (x, y) in bitmap (arr)
 #define P(x, y, w, arr) ((vec3){arr[(3*(((y)*w)+x))], arr[(3*(((y)*w)+x))+1], arr[(3*(((y)*w)+x))+2]})
 
@@ -45,29 +48,29 @@ typedef enum {
     WHITE = 7
 } edge_color_t;
 
-inline double median(double a, double b, double c)
+double median(double a, double b, double c)
 {
   return MAX(MIN(a, b), MIN(MAX(a, b), c));
 }
 
-inline int nonzero_sign(double n)
+int nonzero_sign(double n)
 {
   return 2*(n > 0)-1;
 }
 
-inline double cross(vec2 a, vec2 b)
+double cross(vec2 a, vec2 b)
 {
   return a[0]*b[1] - a[1]*b[0];
 }
 
-inline void vec2_scale(vec2 r, vec2 const v, float const s)
+void vec2_scale(vec2 r, vec2 const v, float const s)
 {
   int i;
   for(i=0; i<2; ++i)
     r[i] = v[i] * s;
 }
 
-inline float vec2_mul_inner(vec2 const a, vec2 const b)
+float vec2_mul_inner(vec2 const a, vec2 const b)
 {
   float p = 0.;
   int i;
@@ -76,18 +79,18 @@ inline float vec2_mul_inner(vec2 const a, vec2 const b)
   return p;
 }
 
-inline float vec2_len(vec2 const v)
+float vec2_len(vec2 const v)
 {
   return sqrtf(vec2_mul_inner(v,v));
 }
 
-inline void vec2_norm(vec2 r, vec2 const v)
+void vec2_norm(vec2 r, vec2 const v)
 {
   float k = 1.0 / vec2_len(v);
   vec2_scale(r, v, k);
 }
 
-inline void vec2_sub(vec2 r, vec2 const a, vec2 const b)
+void vec2_sub(vec2 r, vec2 const a, vec2 const b)
 {
   int i;
   for(i=0; i<2; ++i)
@@ -264,6 +267,7 @@ void cubic_direction(vec2 r, edge_segment_t *e, double param)
   r[1] = t[1];
 }
 
+#if 0
 void direction(vec2 r, edge_segment_t *e, double param)
 {
   switch (e->type) {
@@ -700,7 +704,7 @@ double shoelace(const vec2 a, const vec2 b)
   return (b[0]-a[0])*(a[1]+b[1]);
 }
 
-int ex_msdf_glyph_mem(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, float *bitmap, ex_metrics_t *metrics, int autofit)
+int ex_msdf_glyph_mem(FT_Face face, uint32_t c, size_t w, size_t h, float *bitmap, ex_metrics_t *metrics, int autofit)
 {
   // Funit to pixel scale
   float scale = stbtt_ScaleForMappingEmToPixels(font, h);
@@ -1185,12 +1189,17 @@ int ex_msdf_glyph_mem(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, floa
 
   return 1;
 }
+#else
+int ex_msdf_glyph_mem(FT_Face face, uint32_t c, size_t w, size_t h, float *bitmap, ex_metrics_t *metrics, int autofit) {
+  return 1;
+}
+#endif
 
-float *ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics, int autofit)
+float *ex_msdf_glyph(FT_Face face, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics, int autofit)
 {
   float *bitmap = malloc(sizeof(float)*3*w*h);
   memset(bitmap, 0.0f, sizeof(float)*3*w*h);
-  if (ex_msdf_glyph_mem(font, c, w, h, bitmap, metrics, autofit) != 1) {
+  if (ex_msdf_glyph_mem(face, c, w, h, bitmap, metrics, autofit) != 1) {
     free(bitmap);
     return NULL;
   }
